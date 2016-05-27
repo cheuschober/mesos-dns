@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	i      interface{}
+	i     interface{}
 	zeros = []interface{}{
 		false,
 		byte(0),

@@ -1,0 +1,10 @@
+FROM alpine:latest
+
+COPY build/mesos-dns /mesos-dns
+RUN chmod 700 /mesos-dns
+
+ENV URL="127.0.0.1:8500/v1/kv/myconfig?raw"
+ENV CFGFILE="/cfg.json"
+ENV FLAGS="-config ${CFGFILE}"
+
+ENTRYPOINT ["sh", "-xc","wget -O $CFGFILE $URL && /mesos-dns $FLAGS"]

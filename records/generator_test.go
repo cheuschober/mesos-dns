@@ -11,7 +11,6 @@ import (
 	"reflect"
 	"testing"
 	"testing/quick"
-	"time"
 
 	"github.com/mesosphere/mesos-dns/logging"
 	"github.com/mesosphere/mesos-dns/records/labels"
@@ -189,7 +188,9 @@ func testRecordGenerator(t *testing.T, spec labels.Func, ipSources []string) Rec
 	masters := []string{"144.76.157.37:5050"}
 
 	var rg RecordGenerator
-	if err := rg.InsertState(sj, "mesos", "mesos-dns.mesos.", "127.0.0.1", masters, ipSources, spec); err != nil {
+	c := NewConfig()
+	rg.Config = c
+	if err := rg.InsertState(sj, "mesos", "mesos-dns.mesos.", masters, ipSources, spec); err != nil {
 		t.Fatal(err)
 	}
 
@@ -339,7 +340,9 @@ func TestTimeout(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(sleepForeverHandler))
 	defer server.Close()
 
-	rg := NewRecordGenerator(500 * time.Millisecond)
+	config := NewConfig()
+	config.StateTimeoutSeconds = 1
+	rg := NewRecordGenerator(config)
 	host, port, err := net.SplitHostPort(server.Listener.Addr().String())
 	_, err = rg.loadFromMaster(host, port)
 	if err == nil {

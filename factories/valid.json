@@ -1,0 +1,37 @@
+{
+    "Domain":              "testing",
+    "EnforceRFC952":       true,
+    "File":                "config.inception",
+    "IPSources":           ["host", "docker", "mesos", "rkt"],
+    "Masters":             ["127.0.0.1"],
+    "RefreshSeconds":      5,
+    "Resolvers": {
+        "builtin": {
+            "DNSOn":       true,
+            "ExternalDNS": ["8.8.8.8", "8.8.4.4"],
+            "ExternalOn":  true,
+            "HTTPOn":      true,
+            "HTTPPort":    8080,
+            "Listener":    "127.0.0.1",
+            "Port":        15353,
+            "RecurseOn":   true,
+            "Timeout":     5,
+            "TTL":         5
+        },
+        "consul": {
+            "Address":     "127.0.0.1:8500",
+            "Datacenter":  "test",
+            "Scheme":      "http"
+        }
+    },
+    "StateTimeoutSeconds": 5,
+    "SOAExpire":           5,
+    "SOAMinttl":           5,
+    "SOAMname":            "dnsmenow.com",
+    "SOARefresh":          5,
+    "SOARetry":            5,
+    "SOARname":            "somebody@tech.me",
+    "SOASerial":           5,
+    "Zk":                  "animalshatecages.com",
+    "ZkDetectionTimeout":  5
+}

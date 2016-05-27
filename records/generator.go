@@ -92,7 +92,9 @@ func (kind rrsKind) rrs(rg *RecordGenerator) rrs {
 // them. TODO(kozyraki): Refactor when discovery id is available.
 type RecordGenerator struct {
 	As         rrs
+	Config     *Config
 	SRVs       rrs
+	State      state.State
 	SlaveIPs   map[string]string
 	EnumData   EnumerationData
 	httpClient http.Client
@@ -125,26 +127,32 @@ type EnumerationData struct {
 }
 
 // NewRecordGenerator returns a RecordGenerator that's been configured with a timeout.
-func NewRecordGenerator(httpTimeout time.Duration) *RecordGenerator {
+func NewRecordGenerator(config *Config) *RecordGenerator {
+	httpTimeout := time.Duration(config.StateTimeoutSeconds) * time.Second
+
 	enumData := EnumerationData{
 		Frameworks: []*EnumerableFramework{},
 	}
+
 	rg := &RecordGenerator{
+		Config:     config,
 		httpClient: http.Client{Timeout: httpTimeout},
 		EnumData:   enumData,
 	}
+
 	return rg
 }
 
 // ParseState retrieves and parses the Mesos master /state.json and converts it
 // into DNS records.
-func (rg *RecordGenerator) ParseState(c Config, masters ...string) error {
+func (rg *RecordGenerator) ParseState() error {
 	// find master -- return if error
-	sj, err := rg.findMaster(masters...)
+	sj, err := rg.findMaster(rg.Config.Masters)
 	if err != nil {
 		logging.Error.Println("no master")
 		return err
 	}
+
 	if sj.Leader == "" {
 		logging.Error.Println("Unexpected error")
 		err = errors.New("empty master")
@@ -152,16 +160,17 @@ func (rg *RecordGenerator) ParseState(c Config, masters ...string) error {
 	}
 
 	hostSpec := labels.RFC1123
-	if c.EnforceRFC952 {
+	if rg.Config.EnforceRFC952 {
 		hostSpec = labels.RFC952
 	}
 
-	return rg.InsertState(sj, c.Domain, c.SOARname, c.Listener, masters, c.IPSources, hostSpec)
+	return rg.InsertState(sj, rg.Config.Domain, rg.Config.SOARname, rg.Config.Masters,
+		rg.Config.IPSources, hostSpec)
 }
 
 // Tries each master and looks for the leader
 // if no leader responds it errors
-func (rg *RecordGenerator) findMaster(masters ...string) (state.State, error) {
+func (rg *RecordGenerator) findMaster(masters []string) (state.State, error) {
 	var sj state.State
 	var leader string
 
@@ -297,16 +306,18 @@ func hostToIP4(hostname string) (string, bool) {
 }
 
 // InsertState transforms a StateJSON into RecordGenerator RRs
-func (rg *RecordGenerator) InsertState(sj state.State, domain, ns, listener string, masters, ipSources []string, spec labels.Func) error {
+func (rg *RecordGenerator) InsertState(sj state.State, domain string, ns string, masters, ipSources []string, spec labels.Func) error {
 
 	rg.SlaveIPs = map[string]string{}
 	rg.SRVs = rrs{}
 	rg.As = rrs{}
 	rg.frameworkRecords(sj, domain, spec)
 	rg.slaveRecords(sj, domain, spec)
-	rg.listenerRecord(listener, ns)
 	rg.masterRecord(domain, masters, sj.Leader)
 	rg.taskRecords(sj, domain, spec, ipSources)
+	rg.State = sj
+
+	rg.Config.SOASerial = uint32(time.Now().Unix())
 
 	return nil
 }
@@ -437,7 +448,7 @@ func (rg *RecordGenerator) masterRecord(domain string, masters []string, leader 
 	if !addedLeaderMasterN {
 		// only a flake if there were fallback masters configured
 		if len(masters) > 0 {
-			logging.Error.Printf("warning: leader %q is not in master list", leader)
+			logging.Error.Printf("warning: leader %q is not in master list %q", leader, masters)
 		}
 		arec = "master" + strconv.Itoa(idx) + "." + domain + "."
 		rg.insertRR(arec, ip, A)

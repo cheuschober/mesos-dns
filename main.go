@@ -11,17 +11,17 @@ import (
 	"github.com/mesosphere/mesos-dns/detect"
 	"github.com/mesosphere/mesos-dns/logging"
 	"github.com/mesosphere/mesos-dns/records"
-	"github.com/mesosphere/mesos-dns/resolver"
-	"github.com/mesosphere/mesos-dns/util"
+	"github.com/mesosphere/mesos-dns/resolvers"
+	"github.com/mesosphere/mesos-dns/utils"
 )
 
 func main() {
-	util.PanicHandlers = append(util.PanicHandlers, func(_ interface{}) {
+	var versionFlag bool
+
+	utils.PanicHandlers = append(utils.PanicHandlers, func(_ interface{}) {
 		// by default the handler already logs the panic
 		os.Exit(1)
 	})
-
-	var versionFlag bool
 
 	// parse flags
 	cjson := flag.String("config", "config.json", "path to config file (json)")
@@ -37,22 +37,11 @@ func main() {
 	// initialize logging
 	logging.SetupLogs()
 
-	// initialize resolver
+	// initialize config
 	config := records.SetConfig(*cjson)
-	res := resolver.New(Version, config)
+
+	// initialize timers and error chan
 	errch := make(chan error)
-
-	// launch DNS server
-	if config.DNSOn {
-		go func() { errch <- <-res.LaunchDNS() }()
-	}
-
-	// launch HTTP server
-	if config.HTTPOn {
-		go func() { errch <- <-res.LaunchHTTP() }()
-	}
-
-	changed := detectMasters(config.Zk, config.Masters)
 	reload := time.NewTicker(time.Second * time.Duration(config.RefreshSeconds))
 	zkTimeout := time.Second * time.Duration(config.ZkDetectionTimeout)
 	timeout := time.AfterFunc(zkTimeout, func() {
@@ -61,12 +50,21 @@ func main() {
 		}
 	})
 
+	// initialize a RecordGenerator for use by initializing resolvers
+	rg := records.NewRecordGenerator(config)
+
+	// initialize backends
+	changed := detectMasters(config.Zk, config.Masters)
+	rs := resolvers.New(errch, rg, Version)
+
 	defer reload.Stop()
-	defer util.HandleCrash()
+	defer utils.HandleCrash()
+
+	// Main event loop
 	for {
 		select {
 		case <-reload.C:
-			res.Reload()
+			reloadResolvers(config, errch, rs)
 		case masters := <-changed:
 			if len(masters) == 0 || masters[0] == "" { // no leader
 				timeout.Reset(zkTimeout)
@@ -74,10 +72,25 @@ func main() {
 				timeout.Stop()
 			}
 			logging.VeryVerbose.Printf("new masters detected: %v", masters)
-			res.SetMasters(masters)
-			res.Reload()
+
+			config.Masters = masters
+			reloadResolvers(config, errch, rs)
 		case err := <-errch:
 			logging.Error.Fatal(err)
+		}
+	}
+}
+
+func reloadResolvers(config *records.Config, errch chan error, rs []resolvers.Resolver) {
+	rg := records.NewRecordGenerator(config)
+	err := rg.ParseState()
+
+	if err != nil {
+		logging.Error.Printf("Warning: Error generating records: %v; keeping old DNS state", err)
+		errch <- err
+	} else {
+		for _, resolver := range rs {
+			resolver.Reload(rg)
 		}
 	}
 }
@@ -92,6 +105,7 @@ func detectMasters(zk string, masters []string) <-chan []string {
 			log.Fatalf("failed to initialize master detector: %v", err)
 		}
 	} else {
+		logging.Verbose.Println("No zk servers passed to detectMasters. Masters left unchanged.")
 		changed <- masters
 	}
 	return changed

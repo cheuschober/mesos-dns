@@ -1,12 +1,22 @@
 {
 	"ImportPath": "github.com/mesosphere/mesos-dns",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v69",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/armon/go-radix",
+			"Rev": "4239b77079c7b5d1243b7b4736304ce8ddb6f0f2"
+		},
+		{
 			"ImportPath": "github.com/emicklei/go-restful",
+			"Comment": "v1.1.3-101-g892402b",
+			"Rev": "892402ba11a2e2fd5e1295dd633481f27365f14d"
+		},
+		{
+			"ImportPath": "github.com/emicklei/go-restful/log",
 			"Comment": "v1.1.3-101-g892402b",
 			"Rev": "892402ba11a2e2fd5e1295dd633481f27365f14d"
 		},
@@ -20,6 +30,74 @@
 			"Rev": "fca8c8854093a154ff1eb580aae10276ad6b1b5f"
 		},
 		{
+			"ImportPath": "github.com/hashicorp/consul/acl",
+			"Comment": "v0.5.2-316-g662ca39",
+			"Rev": "662ca39104a39f52341c9b78314883ea7ebb52d0"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/consul/api",
+			"Comment": "v0.5.2-316-g662ca39",
+			"Rev": "662ca39104a39f52341c9b78314883ea7ebb52d0"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/consul/consul/structs",
+			"Comment": "v0.5.2-316-g662ca39",
+			"Rev": "662ca39104a39f52341c9b78314883ea7ebb52d0"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/consul/testutil",
+			"Comment": "v0.5.2-316-g662ca39",
+			"Rev": "662ca39104a39f52341c9b78314883ea7ebb52d0"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-msgpack/codec",
+			"Rev": "fa3f63826f7c23912c15263591e65d54d080b458"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/golang-lru",
+			"Rev": "5c7531c003d8bf158b0fe5063649a2f41a822146"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/golang-lru/simplelru",
+			"Rev": "5c7531c003d8bf158b0fe5063649a2f41a822146"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/ast",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/parser",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/scanner",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/strconv",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/token",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/parser",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/scanner",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/token",
+			"Rev": "e96d23138c76470c808bf6586bdaf981bbd25cae"
+		},
+		{
 			"ImportPath": "github.com/kylelemons/godebug/diff",
 			"Rev": "21cb3784d9bda523911b96719efba02b7e983256"
 		},
@@ -29,6 +107,11 @@
 		},
 		{
 			"ImportPath": "github.com/mesos/mesos-go/detector",
+			"Comment": "v0.0.2-1-g068d547",
+			"Rev": "068d5470506e3780189fe607af40892814197c5e"
+		},
+		{
+			"ImportPath": "github.com/mesos/mesos-go/detector/zoo",
 			"Comment": "v0.0.2-1-g068d547",
 			"Rev": "068d5470506e3780189fe607af40892814197c5e"
 		},

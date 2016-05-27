@@ -36,7 +36,7 @@ curl http://10.190.238.173:8123/v1/config
 	"TTL":60,
 	"Port":53,
 	"Domain":"mesos",
-	"Resolvers":["169.254.169.254","10.0.0.1"],
+	"ExternalDNS":["169.254.169.254","10.0.0.1"],
 	"Timeout":5,
 	"Email":"root.mesos-dns.mesos.",
 	"Mname":"mesos-dns.mesos.",
